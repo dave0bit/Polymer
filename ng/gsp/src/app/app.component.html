@@ -1,9 +1,12 @@
 
 <div style="text-align:center">
+
+  <app-header></app-header>
+
   <div class="logo-toolbar">
     <a href="/">_</a>
   </div>
-  
+
   <nav mat-tab-nav-bar>
     <a mat-tab-link *ngFor="let link of links"
       (click)="activeLink = link"
@@ -16,3 +19,6 @@
   <router-outlet></router-outlet>
 
 </div>
+
+<app-footer></app-footer>
+
