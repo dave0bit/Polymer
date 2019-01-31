@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /bower_components/
+Disallow: /css/
+Disallow: /src/
+
+Sitemap: http://www.1out.it/sitemap.xml

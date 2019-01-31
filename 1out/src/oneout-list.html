@@ -1,0 +1,103 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/app-layout/app-grid/app-grid-style.html">
+
+<link rel="import" href="oneout-list-featured-item.html">
+<link rel="import" href="oneout-list-item.html">
+<link rel="import" href="oneout-styles.html">
+<link rel="import" href="oneout-styles.m.html">
+
+
+<dom-module id="oneout-list">
+
+  <template>
+    
+    <style is="custom-style" include="list-css"></style>
+    <style is="custom-style" include="list-css.m"></style>
+    
+    <app-route route="[[route]]" pattern="/:category" data="{{routeData}}"></app-route>
+
+    <div class="container" fade-in$="[[!loading]]" hidden$="[[failure]]">
+
+      <div class="content">
+        <oneout-list-featured-item item="[[_getFeaturedItem(category.items)]]"></oneout-list-featured-item>
+        <ul class="app-grid article-grid fade-in">
+          <dom-repeat items="[[_slice(category.items, 1, 9)]]">
+            <template>
+              <li>
+                <oneout-list-item item="[[item]]"></oneout-list-item>
+              </li>
+            </template>
+          </dom-repeat>
+        </ul>
+      </div>
+
+    </div>
+
+    <oneout-network-warning hidden$="[[!failure]]" offline="[[offline]]" on-try-reconnect="_tryReconnect"></oneout-network-warning>
+
+  </template>
+
+  <script>
+
+    class OneOutList extends Polymer.Element {
+
+      static get is() { return 'oneout-list'; }
+
+      static get properties() {
+        return {
+          route: Object,
+          category: Object,
+          offline: Boolean,
+          failure: Boolean,
+          categoryName: {
+            type: Boolean,
+            computed: '_return(routeData.category)',
+            notify: true
+          },
+          routeData: Object,
+          loading: Boolean
+        }
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this._boundResizeHandler = this._resizeHandler.bind(this);
+        window.addEventListener('resize', this._boundResizeHandler);
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('resize', this._boundResizeHandler);
+      }
+
+      _getFeaturedItem(items) {
+        return items ? items[0] : {};
+      }
+
+      _tryReconnect() {
+        this.dispatchEvent(new CustomEvent('refresh-data', { bubbles: true, composed: true }));
+      }
+
+      _resizeHandler() {
+        this._resizeDebouncer = Polymer.Debouncer.debounce(this._resizeDebouncer,
+          Polymer.Async.timeOut.after(50), () => { this.updateStyles(); });
+      }
+
+      _slice(list, begin, end) {
+        if (list) {
+          return list.slice(begin, end);
+        }
+      }
+
+      _return(value) {
+        return value;
+      }
+
+    }
+
+    customElements.define(OneOutList.is, OneOutList);
+
+  </script>
+
+</dom-module>

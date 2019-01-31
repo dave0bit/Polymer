@@ -1,0 +1,124 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+
+<link rel="import" href="oneout-icons.html">
+<link rel="import" href="oneout-styles.html">
+<link rel="import" href="oneout-styles.m.html">
+
+<dom-module id="oneout-header">
+
+  <template>
+    
+    <style is="custom-style" include="header-css"></style>
+    <style is="custom-style" include="header-css.m"></style>
+
+    <header>
+      <app-toolbar class="logo-toolbar">
+        <paper-icon-button 
+          class="mobile-toggle-drawer-btn" 
+          icon="menu" 
+          on-click="_toggleDrawer" 
+          aria-label="Main navigation">
+        </paper-icon-button>
+        
+        <div class="logo" main-title>
+          <a style="font-size: 40px;" href="/" aria-label$="[[_computeAppHomeLabel(appTitle)]]">&nbsp;&nbsp;</a>
+        </div>
+
+        <dom-if if="[[!smallScreen]]">
+          <template>
+            <paper-tabs class="menu-list" selected=1>
+              <dom-repeat items="[[categories]]" as="category" initial-count="4">
+                <template>
+                  <paper-tab link>
+                    <a name="[[category.name]]" href="/list/[[category.name]]">[[category.title]]</a>
+                  </paper-tab>
+                </template>
+              </dom-repeat>
+            </paper-tabs>
+            </template>
+        </dom-if>
+
+      </app-toolbar>
+
+    </header>
+
+    <app-box role="banner" class="sticky-nav" threshold="[[_getScrollThreshold(smallScreen)]]">
+      <app-toolbar class="sticky-nav-toolbar">
+        <paper-icon-button aria-label="Home" icon="[[_menuIcon(drawerOpened)]]" on-click="_toggleDrawer"></paper-icon-button>
+        <div class="sticky-nav-center">
+          <div class="logo" main-title>
+            <a href="/" aria-label$="[[_computeAppHomeLabel(appTitle)]]">&nbsp;&nbsp;</a>
+          </div>
+          <div class="sticky-nav-menu" shown$="[[drawerOpened]]">
+            <iron-selector class="grid-container" role="navigation" selected="[[category.name]]" attr-for-selected="name">
+              <dom-repeat items="[[categories]]" as="category" initial-count="4">
+                <template><a name="[[category.name]]" href="/list/[[category.name]]">[[category.title]]</a></template>
+              </dom-repeat>
+            </iron-selector>
+          </div>
+            <div class="article-headline">
+            <slot></slot>
+          </div>
+        </div>
+  
+      </app-toolbar>
+
+    </app-box>
+
+  </template>
+
+  <script>
+
+    class OneOutHeader extends Polymer.Element {
+
+      static get is() { return 'oneout-header'; }
+
+      static get properties() { return {
+
+          appTitle: String,
+
+          page: {
+            type: String,
+            reflectToAttribute: true
+          },
+
+          categories: Array,
+
+          category: Object,
+
+          smallScreen: Boolean,
+
+          drawerOpened: {
+            type: Boolean,
+            notify: true
+          }
+      }}
+
+      _menuIcon(drawerOpened) {
+        return drawerOpened ? 'close' : 'menu';
+      }
+
+      _toggleDrawer() {
+        this.drawerOpened = !this.drawerOpened;
+      }
+
+      _getScrollThreshold(smallScreen) {
+        return smallScreen ? window.innerHeight - 64 : 162;
+      }
+
+      _computeAppHomeLabel(appTitle) {
+        return appTitle + ' Home';
+      }
+
+    }
+
+    customElements.define(OneOutHeader.is, OneOutHeader);
+
+  </script>
+
+</dom-module>

@@ -1,0 +1,300 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-layout/helpers/helpers.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="oneout-data.html">
+<link rel="import" href="oneout-nav.html">
+<link rel="import" href="oneout-icons.html">
+<link rel="import" href="oneout-analytics.html">
+
+<link rel="import" href="oneout-styles.html">
+<link rel="import" href="oneout-styles.m.html">
+
+<dom-module id="oneout-app">
+
+  <template>
+
+    <style is="custom-style" include="app-css"></style>
+    <style is="custom-style" include="app-css.m"></style>
+    
+    <oneout-analytics key="UA-125558659-1"></oneout-analytics>
+    <app-location route="{{route}}"></app-location>
+    <app-route route="{{route}}" 
+      pattern="/:page" 
+      data="{{routeData}}" 
+      tail="{{subroute}}">
+    </app-route>
+
+    <oneout-data id="data" 
+      categories="{{categories}}" 
+      category-name="[[categoryName]]" 
+      category="{{category}}"
+      article-id="[[articleId]]" 
+      article="{{article}}" 
+      loading="{{loading}}" 
+      offline="[[offline]]" 
+      failure="{{failure}}">
+    </oneout-data>
+
+    <oneout-nav id="nav" 
+      app-title="[[appTitle]]" 
+      page="[[page]]" 
+      categories="[[categories]]" 
+      category="[[category]]"
+      load-complete="[[loadComplete]]">
+      [[articleHeadline]]
+    </oneout-nav>
+
+    <iron-pages role="main" 
+      selected="[[page]]" 
+      attr-for-selected="name" 
+      fallback-selection="path-warning">
+      <oneout-list id="list" 
+        name="list" 
+        route="[[subroute]]" 
+        category-name="{{categoryName}}" 
+        category="[[category]]" 
+        loading="[[loading]]" 
+        offline="[[offline]]" 
+        failure="[[failure]]">
+      </oneout-list>
+      <oneout-article name="article" 
+        route="{{subroute}}" 
+        category-name="{{categoryName}}" 
+        category="[[category]]" 
+        article-id="{{articleId}}" 
+        article="[[article]]" 
+        loading="[[loading]]" 
+        offline="[[offline]]" 
+        failure="[[failure]]">
+      </oneout-article>
+      
+      <oneout-path-warning name="path-warning"></oneout-path-warning>
+    
+    </iron-pages>
+
+    <br>
+    
+    <footer>
+
+      <div class="footer-link">
+        <div>
+          <a href="mailto:info@1out.it?subject=Richiesta Informazioni&body=Vorrei ricever maggiori informazioni sui vostri servizi."><iron-icon class="footer-icon" icon="mail"></iron-icon>Email</a>
+          <a href="tel:+390287159173"><iron-icon class="footer-icon" icon="phone"></iron-icon>+390287159173</a>
+          <a href="/article/contatti/privacy"><iron-icon class="footer-icon" icon="policy"></iron-icon>Privacy Policy</a>
+        </div>
+      </div>
+
+      <div class="footer-legal">
+        <div>
+          <a>
+            1OUT Cooperativa Sociale ONLUS
+          </a>
+        </div>
+        <div>
+          <a>
+            Codice fiscale e partita iva: 08864380962
+          </a>
+        </div>
+        <div>
+          <a>
+            Capitale sociale: 75€ interamente versate
+          </a>
+        </div>
+        <div>
+          <a>Fondi Smuraglia usufruiti nel 2017 45.380,83</a>
+        </div>
+      </div>
+        
+      
+
+        
+          
+        </a>
+      </div>    
+    
+    </footer>
+
+  </template>
+
+  <script>
+    class OneOutApp extends Polymer.Element {
+      static get is() { return 'oneout-app'; }
+      static get properties() {
+
+        return {
+          appTitle: String,
+          page: {
+            type: String,
+            observer: '_pageChanged'
+          },
+          routeData: Object,
+          categories: Array,
+          categoryName: String,
+          category: Object,
+          articleId: String,
+          article: Object,
+          articleHeadline: {
+            type: String,
+            value: ''
+          },
+          offline: {
+            type: Boolean,
+            value: false,
+            readOnly: true
+          },
+          failure: Boolean,
+          loadComplete: Boolean
+        }
+      }
+
+      static get observers() {
+        return [
+          '_routePageChanged(routeData.page, isAttached)',
+          '_updateArticleHeadline(article.headline)',
+          '_updateDocumentTitle(page, category.title, articleHeadline, appTitle)'
+        ]
+      }
+
+      ready() {
+        super.ready();
+        this.removeAttribute('unresolved');
+
+        let ua = navigator.userAgent;
+        let cMatch = navigator.userAgent.match(/Android.*Chrome[\/\s](\d+\.\d+)/);
+        if (ua.match('CriOS') || (cMatch && cMatch[0] && cMatch[1] < 56)) {
+          document.body.classList.add('fixed-viewport-height');
+        }
+
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          window.addEventListener('online', (e) => this._notifyNetworkStatus(e));
+          window.addEventListener('offline', (e) => this._notifyNetworkStatus(e));
+          this.addEventListener('refresh-data', (e) => this._refreshData(e));
+        });
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.isAttached = true;
+      }
+
+      _routePageChanged(page, isAttached) {
+        if (!isAttached) {
+          return;
+        }
+        if (!page) {
+          this.set('route.path', 'list/chisiamo');
+          return;
+        }
+        this.page = page;
+        Polymer.AppLayout.scroll({ top: 0, behavior: 'silent' });
+        this.$.nav.closeDrawer();
+      }
+
+      _pageChanged(page, oldPage) {
+        let href;
+
+        switch (page) {
+          case 'list':
+            href = 'oneout-list.html';
+            break;
+          case 'article':
+            href = 'oneout-article.html';
+            break;
+          default:
+            href = 'oneout-path-warning.html';
+            break;
+        }
+
+        let cb = this._pageLoaded.bind(this, Boolean(oldPage));
+        Polymer.importHref(this.resolveUrl(href), cb, cb, true);
+      }
+
+      _pageLoaded(shouldResetLayout) {
+        this._ensureLazyLoaded();
+      }
+
+      _ensureLazyLoaded() {
+        if (!this.loadComplete) {
+          Polymer.RenderStatus.afterNextRender(this, () => {
+            Polymer.importHref(this.resolveUrl('lazy-resources.html'), () => {
+              this._notifyNetworkStatus();
+              this.loadComplete = true;
+
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('service-worker.js', { scope: '/' });
+              }
+            });
+          });
+        }
+      }
+
+      _notifyNetworkStatus() {
+        let oldOffline = this.offline;
+        this._setOffline(!window.navigator.onLine);
+        if (this.offline || (!this.offline && oldOffline === true)) {
+          if (!this._networkSnackbar) {
+            this._networkSnackbar = document.createElement('oneout-snackbar');
+            this.root.appendChild(this._networkSnackbar);
+          }
+          this._networkSnackbar.textContent = this.offline ?
+            'Attualmente sei offline' : 'Attualmente sei online';
+          this._networkSnackbar.open();
+        }
+      }
+
+      _updateArticleHeadline(articleHeadline) {
+        this.articleHeadline = articleHeadline;
+      }
+
+      _updateDocumentTitle(page, categoryTitle, articleHeadline, appTitle) {
+        document.title = (page === 'list' ? categoryTitle : articleHeadline) + ' - ' + appTitle;
+        if (page === 'list') {
+          this._setPageMetadata(categoryTitle, null);
+        } else {
+          this._setPageMetadata(articleHeadline, this.article);
+        }
+      }
+
+      _setPageMetadata(description, article) {
+        let image = article ? article.imageUrl : 'images/oneout-icon-128.png';
+
+        let keyword = article ? article.keyword : description || document.title;
+
+        this._setMeta('property', 'Description', description || document.title);
+        this._setMeta('property', 'keywords', keyword);
+
+        // Set open graph metadata
+        this._setMeta('property', 'og:title', document.title);
+        this._setMeta('property', 'og:description', description || document.title);
+        this._setMeta('property', 'og:url', document.location.href);
+        this._setMeta('property', 'og:image', this.baseURI + image);
+
+        // Set twitter card metadata
+        this._setMeta('property', 'twitter:title', document.title);
+        this._setMeta('property', 'twitter:description', description || document.title);
+        this._setMeta('property', 'twitter:url', document.location.href);
+        this._setMeta('property', 'twitter:image:src', this.baseURI + image);
+      }
+
+      _setMeta(attrName, attrValue, content) {
+        let element = document.head.querySelector(`meta[${attrName}="${attrValue}"]`);
+        if (!element) {
+          element = document.createElement('meta');
+          element.setAttribute(attrName, attrValue);
+          document.head.appendChild(element);
+        }
+        element.setAttribute('content', content || '');
+      }
+
+      _refreshData() {
+        this.$.data.refresh();
+      }
+
+    }
+    customElements.define(OneOutApp.is, OneOutApp);
+  </script>
+
+</dom-module>

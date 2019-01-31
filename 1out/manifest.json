@@ -1,0 +1,21 @@
+{
+  "name": "ONEOUT",
+  "short_name": "ONEOUT",
+  "icons": [{
+      "src": "images/oneout-icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }, {
+      "src": "images/oneout-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }, {
+      "src": "images/oneout-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }],
+  "start_url": "/",
+  "background_color": "#FAFAFA",
+  "display": "standalone",
+  "theme_color": "#FAFAFA"
+}

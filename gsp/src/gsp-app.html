@@ -1,0 +1,512 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-layout/helpers/helpers.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="gsp-data.html">
+<link rel="import" href="gsp-list.html">
+<link rel="import" href="gsp-article.html">
+<link rel="import" href="gsp-nav.html">
+<link rel="import" href="gsp-footer.html">
+<link rel="import" href="gsp-icons.html">
+<link rel="import" href="gsp-analytics.html">
+<link rel="import" href="gsp-tagmanager.html">
+<link rel="import" href="gsp-path-warning.html">
+
+
+<dom-module id="gsp-app">
+
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        position: relative;
+        min-height: 100vh;
+        padding-bottom: 64px;
+
+        --app-border-style: 1px solid #CCC;
+        --app-transparent-border-style: 1px solid rgba(255, 255, 255, 0.5);
+        --app-button-border-style: 2px solid #222;
+        --app-cover-text-color: #FFF;
+        --app-nav-background-color: #222;
+        --app-nav-text-color: #FFF;
+        --app-nav-deselected-text-color: #CCC;
+        --app-nav-selected-background-color: #555;
+
+        --viewport-height: 600px;
+
+        --app-sub-section-headline: {
+          border-top: var(--app-border-style);
+          border-bottom: var(--app-border-style);
+          font-size: 13px;
+          padding: 8px;
+          text-align: center;
+        };
+      }
+
+      iron-pages {
+        max-width: 1440px;
+        margin-top: 0;
+        margin-right: auto;
+        margin-bottom: 120px;
+        margin-left: auto;
+      }
+
+      footer {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        padding-bottom: 24px;
+        text-align: center;
+        background-color: rgb(34, 34, 34);
+      }
+
+      .footer-icon {
+        margin-right: 4px;
+        --iron-icon-height: 18px;
+        --iron-icon-width: 18px;
+        --iron-icon-fill-color: #ECEFF1;
+        --iron-icon-stroke-color: black;
+      }
+
+      footer a {
+        text-decoration: none;
+        font-size: 13px;
+        color: #ECEFF1;
+        padding: 4px;
+        margin-right: 10px;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      .footer-content {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      @media (min-width: 768px) {
+        :host {
+          margin: 0 40px;
+        }
+
+        iron-pages {
+          margin-bottom: 200px;
+        }
+
+      }
+
+      @media (max-width: 767px) {
+        iron-pages {
+          margin-bottom: 240px;
+        }
+
+        .footer-content {
+          flex-direction: column;
+          margin-top: 0px;
+        }
+
+        .footer-content div {
+          margin-top: 20px;
+        }
+      }
+    </style>
+
+    <gsp-analytics key="UA-125558659-2"></gsp-analytics>
+    <!--<gsp-tagmanager key="AW-970010760"></gsp-tagmanager>-->
+
+    <app-location route="{{route}}"></app-location>
+
+    <app-route 
+      route="{{route}}" 
+      pattern="/:page" 
+      data="{{routeData}}" 
+      tail="{{subroute}}">
+    </app-route>
+
+    <gsp-data id="data" 
+      categories="{{categories}}" 
+      category-name="[[categoryName]]" 
+      category="{{category}}" 
+      article-id="[[articleId]]"
+      article="{{article}}" 
+      loading="{{loading}}" 
+      offline="[[offline]]" 
+      failure="{{failure}}">
+    </gsp-data>
+
+    <gsp-nav id="nav" 
+      app-title="[[appTitle]]" 
+      page="[[page]]" 
+      categories="[[categories]]" 
+      category="[[category]]"
+      load-complete="[[loadComplete]]">
+      [[articleHeadline]]
+    </gsp-nav>
+
+    <iron-pages 
+      role="main" 
+      selected="[[page]]" 
+      attr-for-selected="name" 
+      fallback-selection="path-warning"
+      selected-attribute="active">
+
+      <gsp-list id="list" 
+        name="list" 
+        route="[[subroute]]" 
+        category-name="{{categoryName}}" 
+        category="[[category]]"
+        loading="[[loading]]" 
+        offline="[[offline]]" 
+        failure="[[failure]]">
+      </gsp-list>
+
+      <gsp-article name="article" 
+        route="{{subroute}}" 
+        category-name="{{categoryName}}" 
+        category="[[category]]" 
+        article-id="{{articleId}}" 
+        article="[[article]]" 
+        loading="[[loading]]" 
+        offline="[[offline]]" 
+        failure="[[failure]]">
+      </gsp-article>
+
+      <gsp-path-warning name="path-warning"></gsp-path-warning>
+
+    </iron-pages>
+
+    <gsp-footer></gsp-footer>
+
+  </template>
+
+  <script>
+
+
+    class GspApp extends Polymer.Element {
+      static get is() { return 'gsp-app'; }
+      static get properties() {
+        return {
+          appTitle: String,
+          page: {
+            type: String,
+            observer: '_pageChanged'
+          },
+          routeData: Object,
+          categories: Array,
+          categoryName: String,
+          category: Object,
+          articleId: String,
+          article: Object,
+          articleHeadline: {
+            type: String,
+            value: ''
+          },
+          offline: {
+            type: Boolean,
+            value: false,
+            readOnly: true
+          },
+          failure: Boolean,
+          loadComplete: Boolean
+        }
+      }
+      static get observers() {
+        return [
+          '_routePageChanged(routeData.page, isAttached)',
+          '_updateArticleHeadline(article.headline)',
+          '_updateDocumentTitle(page, category, articleHeadline, appTitle)'
+        ]
+      }
+
+      ready() {
+        super.ready();
+        this.removeAttribute('unresolved');
+
+        let ua = navigator.userAgent;
+        let cMatch = navigator.userAgent.match(/Android.*Chrome[\/\s](\d+\.\d+)/);
+        if (ua.match('CriOS') || (cMatch && cMatch[0] && cMatch[1] < 56)) {
+          document.body.classList.add('fixed-viewport-height');
+        }
+
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          window.addEventListener('online', (e) => this._notifyNetworkStatus(e));
+          window.addEventListener('offline', (e) => this._notifyNetworkStatus(e));
+          this.addEventListener('refresh-data', (e) => this._refreshData(e));
+        });
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.isAttached = true;
+      }
+
+      _routePageChanged(page, isAttached) {
+        if (!isAttached) {
+          return;
+        }
+        if (!page) {
+          this.set('route.path', 'list/chisiamo');
+          return;
+        } else {
+
+          console.log("_pageChanged/page : " + page);
+          console.log("_pageChanged/location.pathname : " + location.pathname);
+          
+          if (location.pathname.localeCompare('/it/digitalizzazione/') === 0 ||
+              location.pathname.localeCompare('/en/digitalizzazione/') === 0 || 
+              location.pathname.localeCompare('/tag/digitalizzazione/') === 0 ||
+              location.pathname.localeCompare('/digitalizzazione/') === 0 ||
+              location.pathname.localeCompare('/digitalizzazione/catalogazione/') === 0 || 
+              location.pathname.localeCompare('/digitalizzazione/digitalizzazione2/') === 0 || 
+              location.pathname.localeCompare('/digitalizzazione/gestione_documentale/') === 0 || 
+              location.pathname.localeCompare('/digitalizzazione/normalizzazione/') === 0  
+            ) {
+            this.set('route.path', 'article/servizi/digitalizzazione');
+            return;
+          }
+
+          if (location.pathname.localeCompare('/it/responsabilita-sociale-dimpresa/keyboard/') === 0 ||
+              location.pathname.localeCompare('/la-storia/about_photo/') === 0 ||
+              location.pathname.localeCompare('/la-storia/organigramma/') === 0 ||
+              location.pathname.localeCompare('/chi-siamo/') === 0 ||
+              location.pathname.localeCompare('/en/2014/02/04/nuova-sede-via-dei-mille-2/') === 0 ||
+              location.pathname.localeCompare('/la-storia/') === 0
+          ) {
+            this.set('route.path', '/article/chisiamo/contesto_sociale');
+            return;
+          }
+
+          if (location.pathname.localeCompare('/en/gsp-network/') === 0 ||
+              location.pathname.localeCompare('/partners/') === 0 ||
+              location.pathname.localeCompare('/gsp-network/1out/') === 0 ||
+              location.pathname.localeCompare('/partners/webdox/') === 0 ||
+              location.pathname.localeCompare('/tag/gsp-network/') === 0
+          ) {
+            this.set('route.path', '/article/chisiamo/partner');
+            return;
+          }
+
+          if (location.pathname.localeCompare('/servizi-di-call-center-a-milano-opera/') === 0 ||
+              location.pathname.localeCompare('/portfolio_project/call-center/') === 0 ||
+              location.pathname.localeCompare('/it/portfolio_project/call-center/') === 0 ||
+              location.pathname.localeCompare('/tag/call-center/') === 0 ||
+              location.pathname.localeCompare('/en/call-center/') === 0 ||
+              location.pathname.localeCompare('/it/services/sicurezza/') === 0 
+          ) {
+            this.set('route.path', '/article/servizi/callcenterinbound');
+            return;
+          }
+
+          if (location.pathname.localeCompare('/staff/roberto-brocato/') === 0 ||
+              location.pathname.localeCompare('/responsabilita-sociale-dimpresa/keyboard/') === 0 ||
+              location.pathname.localeCompare('/en/tag/csr/') === 0
+          ) {
+            this.set('route.path', '/article/chisiamo/mission_vision');
+            return;
+          }
+
+          if (location.pathname.localeCompare('/tag/inserimento-dati') === 0 
+          ) {
+            this.set('route.path', '/article/servizi/data_entry');
+            return;
+          }
+
+          if (location.pathname.localeCompare('/category/news/') === 0 ||
+              location.pathname.localeCompare('/en/') === 0
+          ) {
+            this.set('route.path', '/list/chisiamo');
+            return;
+          }
+
+          if (location.pathname.localeCompare('/it/category/servizi/feed/') === 0 ||
+              location.pathname.localeCompare('/it/portfolio_category/services/feed/') === 0 ||
+              location.pathname.localeCompare('/it/faq/which-iconlinks-are-available-on-social-media-widget/') === 0 ||
+              location.pathname.localeCompare('/it/category/servizi/') === 0 ||
+              location.pathname.localeCompare('/category/servizi/') === 0
+          ) {
+            this.set('route.path', '/list/servizi');
+            return;
+          }
+
+          if (location.pathname.localeCompare('/tag/highlights/') === 0 ||
+              location.pathname.localeCompare('/tag/highlights/feed/') === 0 ||
+              location.pathname.localeCompare('/gsp-network/certificazioni/') === 0 ||
+              location.pathname.localeCompare('/services/economicita/') === 0 ||
+              location.pathname.localeCompare('/services/sicurezza/') === 0 ||
+              location.pathname.localeCompare('/services/professionalita/') === 0 ||
+              location.pathname.localeCompare('/services/affidabilita/') === 0
+          ) {
+            this.set('route.path', '/article/chisiamo/certificazioni');
+            return;
+          }
+
+
+          if (location.pathname.localeCompare('/tag/conservazione-sostitutiva-digitale/') === 0
+          ) { 
+            this.set('route.path', '/article/servizi/archsostitutiva');
+            return;
+          }
+
+          if (location.pathname.localeCompare('/en/contatti/') === 0 ||
+              location.pathname.localeCompare('/faq_category/customer-support/') === 0
+          ) {
+            this.set('route.path', '/article/contatti/contatti');
+            return;
+          }
+
+
+          this.page = page;
+          Polymer.AppLayout.scroll({ top: 0, behavior: 'silent' });
+          this.$.nav.closeDrawer();
+        }
+
+      }
+
+      _pageChanged(page, oldPage) {
+        let href;
+
+        switch (page) {
+          case 'list':
+            href = 'gsp-list.html';
+            break;
+          case 'article':
+            href = 'gsp-article.html';
+            break;
+          default:
+            href = 'gsp-path-warning.html';
+            break;
+        }
+        let cb = this._pageLoaded.bind(this, Boolean(oldPage));
+        Polymer.importHref(this.resolveUrl(href), cb, cb, true);
+      }
+
+      _pageLoaded(shouldResetLayout) {
+        this._ensureLazyLoaded();
+      }
+
+      _ensureLazyLoaded() {
+        if (!this.loadComplete) {
+          Polymer.RenderStatus.afterNextRender(this, () => {
+            Polymer.importHref(this.resolveUrl('lazy-resources.html'), () => {
+              this._notifyNetworkStatus();
+              this.loadComplete = true;
+
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('service-worker.js', { scope: '/' });
+              }
+            });
+          });
+        }
+      }
+
+      _notifyNetworkStatus() {
+        let oldOffline = this.offline;
+        this._setOffline(!window.navigator.onLine);
+        if (this.offline || (!this.offline && oldOffline === true)) {
+          if (!this._networkSnackbar) {
+            this._networkSnackbar = document.createElement('gsp-snackbar');
+            this.root.appendChild(this._networkSnackbar);
+          }
+          this._networkSnackbar.textContent = this.offline ?
+            'Attualmente sei offline' : 'Attualmente sei online';
+          this._networkSnackbar.open();
+        }
+      }
+
+      _updateArticleHeadline(articleHeadline) {
+        this.articleHeadline = articleHeadline;
+      }
+
+      _updateDocumentTitle(page, category, articleHeadline, appTitle) {
+        if (page === 'list') {
+          document.title = category.title + ' - ' + appTitle;
+          this._setPageMetadata(category, null, page);
+        } else {
+          if (category != undefined) {
+            document.title = category.metaname;
+          }
+          this._setPageMetadata(articleHeadline, this.article, page);
+        }
+        if (page === 'article') {
+            document.title = this.article == null ? "" : this.article.metaname;
+        }
+      }
+
+      _setPageMetadata(category, article, page) {
+
+        var _metakey = '';
+        var _metadesc = '';
+        var _metaname = '';
+        var image = 'images/gsp-icon-128.png';
+
+        if (page === 'list') {
+          _metadesc = category.metadesc;
+          _metaname = category.metaname;
+          _metakey = category.metakey;
+          image = category.image;
+        } else {
+          if (article) {
+            _metadesc = article.metadesc;
+            _metaname = article.metaname;
+            _metakey = article.metakey;
+            image = article.imageUrl;
+          }
+        }
+
+        /*
+          <meta name="article-author" content="">
+ 
+          <meta property="og:type" content="article">
+ 
+          <meta property="article:publisher" content="">
+          <meta property="article:published_time" content="">
+ 
+          <meta name="twitter:card" content="summary">
+          <meta name="twitter:site" content="">
+        */
+
+        // Set basic metadata
+        this._setMeta('name', 'title', _metaname);
+        this._setMeta('name', 'description', _metadesc);
+        this._setMeta('name', 'keywords', _metakey);
+
+        // Set open graph metadata
+        this._setMeta('property', 'og:title', _metaname);
+        this._setMeta('property', 'og:description', _metadesc);
+        this._setMeta('property', 'og:url', document.location.href);
+        this._setMeta('property', 'og:image', this.baseURI + image);
+
+        // Set twitter card metadata
+        this._setMeta('property', 'twitter:title', _metaname);
+        this._setMeta('property', 'twitter:description', _metadesc);
+        this._setMeta('property', 'twitter:url', document.location.href);
+        this._setMeta('property', 'twitter:image:src', this.baseURI + image);
+      }
+
+      _setMeta(attrName, attrValue, content) {
+        let element = document.head.querySelector(`meta[${attrName}="${attrValue}"]`);
+        if (!element) {
+          element = document.createElement('meta');
+          element.setAttribute(attrName, attrValue);
+          document.head.appendChild(element);
+        }
+        element.setAttribute('content', content || '');
+      }
+
+      _refreshData() {
+        this.$.data.refresh();
+      }
+
+    }
+
+    customElements.define(GspApp.is, GspApp);
+
+  </script>
+
+</dom-module>

@@ -1,0 +1,222 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+
+<link rel="import" href="gsp-img.html">
+<link rel="import" href="gsp-icons.html">
+
+<dom-module id="gsp-article-cover">
+
+  <template>
+
+    <style>
+      :host {
+        display: block;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .flex {
+        flex: 1;
+      }
+
+      h1 {
+        font-feature-settings: "smcp", "zero";
+        font-weight: bolder;
+        font-size: 24px;
+        margin: 24px 0;
+      }
+
+      .cover-img-container {
+        position: relative;
+        width: 100%;
+      }
+
+      .cover-img-container > gsp-img {
+        display: block;
+        width: 100%;
+        height: auto;
+        min-height: 60vh;
+        object-fit: cover;
+      }
+
+      :host-context(.fixed-viewport-height) .cover-img-container > gsp-img {
+        min-height: calc(var(--viewport-height) * 0.6);
+      }
+
+      .chevron {
+          visibility: hidden;
+        }
+
+      /* mobile */
+      @media (max-width: 767px) {
+        :host {
+          /*todo*/
+          --backgroundColor: #000;
+          --backgroundGradient: linear-gradient(
+              to bottom,
+              rgba(0,0,0,0.6) 0%,
+              rgba(0,0,0,0.25) 25%,
+              rgba(0,0,0,0.25) 50%, 
+              rgba(0,0,0,0.7) 80%,
+              rgba(0,0,0,1) 100%
+            );
+            background: var(--backgroundColor);
+        }
+
+        .cover-text {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+          box-sizing: border-box;
+          color: var(--app-cover-text-color);
+          padding: 0 24px;
+          z-index: 1;
+        }
+
+        :host-context(.fixed-viewport-height) .cover-text {
+          height: var(--viewport-height);
+        }
+
+        .cover-img-container {
+          position: absolute;
+          top: 0;
+        }
+
+        
+        .cover-img-container > gsp-img {
+          min-height: 60vh;
+        }
+
+        .cover-img-container .scrim {
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          background: var(--backgroundGradient);
+        }
+
+        h1 { 
+          margin-top: 0; 
+        }
+        h1 {
+          font-size: 6vh;
+          line-height: 7vh;
+          max-height: calc(7vh * 7);
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 7;
+          -webkit-box-orient: vertical;
+        }
+        .chevron {
+          visibility: visible;
+        }
+
+      }
+
+      /* mobile and desktop small 
+     @media (max-width: 1309px) {
+        h1 {
+          font-size: 4vh;
+          line-height: 7vh;
+          max-height: calc(7vh * 7);
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 7;
+          -webkit-box-orient: vertical;
+        }
+        
+
+        :host-context(.fixed-viewport-height) h1 {
+          font-size: calc(var(--viewport-height) * 0.06);
+          line-height: calc(var(--viewport-height) * 0.07);
+          max-height: calc(var(--viewport-height) * 0.49);
+        }
+
+      }
+      */
+    </style>
+
+    <div class="cover-text">
+    
+      <div class="flex"></div>
+
+      <div class="flex">
+        <iron-icon class="chevron" style="float: left;" icon="gsp:chevron-left"></iron-icon>
+        <iron-icon class="chevron" style="float: right;" icon="gsp:chevron-right"></iron-icon>
+      </div>
+
+      <h1>[[article.headline]]</h1>
+
+    </div>
+
+    <div class="cover-img-container">
+      <gsp-img src="[[article.imageUrl]]" hidden$="[[!article.imageUrl]]"></gsp-img>
+      <div class="scrim">
+        
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+
+    class GspArticleCover extends Polymer.Element {
+      static get is() { return 'gsp-article-cover'; }
+      
+      static get properties() { 
+        return { 
+          article: { 
+            type: Object
+          },
+          background: {
+            type: Object,
+            computed: '_computeBackground(article)',
+            notify: true
+          }
+        }
+      }
+      
+      _computeBackground(article) {
+        
+        if (article != null) {
+          var c = this._hexToRgbA(article.background);
+          this.updateStyles(
+            {
+              '--backgroundColor': article.background,
+              '--backgroundGradient': 'linear-gradient(to bottom, rgba(' + c + ',0.6) 0%, rgba(' + c + ',0.25) 25%, rgba(' + c + ',0.25) 50%, rgba(' + c + ',0.7) 80%, rgba(' + c +',1) 100%)'
+            }
+          );
+        }
+        else {
+          this.updateStyles(
+            {
+              '--backgroundColor': '#f00',
+              '--backgroundGradient': 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.25) 25%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.7) 80%, rgba(0,0,0,1) 100%)'
+            });
+        }
+      }
+      
+      _hexToRgbA(hex){
+        var c;
+        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+          c= hex.substring(1).split('');
+          if(c.length== 3){
+            c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+          }
+          c= '0x'+c.join('');
+        //return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',1)';
+        return [(c>>16)&255, (c>>8)&255, c&255].join(',');
+        }
+        throw new Error('Bad Hex');
+      }
+    }
+
+    customElements.define(GspArticleCover.is, GspArticleCover);
+
+  </script>
+
+</dom-module>

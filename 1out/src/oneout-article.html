@@ -1,0 +1,281 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<link rel="import" href="oneout-exp.html">
+<link rel="import" href="oneout-article-cover.html">
+<link rel="import" href="oneout-styles.html">
+<link rel="import" href="oneout-styles.m.html">
+
+<dom-module id="oneout-article">
+
+  <template>
+    
+    <style is="custom-style" include="article-css"></style>
+    <style is="custom-style" include="article-css.m"></style>
+    
+    <app-route route="{{route}}" pattern="/:category/:id" data="{{_routeData}}"></app-route>
+
+    <div class="container" fade-in$="[[!loading]]" hidden$="[[failure]]">
+      <article class="flex">
+        <oneout-article-cover id="cover0" class="fade-in"></oneout-article-cover>
+        <oneout-article-cover id="cover1" class="preview-cover"></oneout-article-cover>
+        <oneout-article-cover id="cover2" class="preview-cover"></oneout-article-cover>
+        <div class="container" >
+          <div id="img-container" class="article-img-container" style$="
+              background-image: url('[[article.imageUrl]]'); 
+              background-repeat: no-repeat;
+              background-size: cover;
+              background-position: center top;
+              ">
+          </div>
+          <div id="content" class="fade-in"></div>
+        </div>
+      </article>
+    </div>
+
+    <oneout-network-warning hidden$="[[!failure]]" offline="[[offline]]" on-try-reconnect="_tryReconnect"></oneout-network-warning>
+
+  </template>
+
+  <script>
+
+    class OneOutArticle extends Polymer.Element {
+
+      static get is() { return 'oneout-article'; }
+
+      static get properties() { return {
+        route: Object,
+        category: Object,
+        article: Object,
+        previousArticle: {
+          type: Object,
+          computed: '_computePreviousArticle(category.items, article)'
+        },
+        nextArticle: {
+          type: Object,
+          computed: '_computeNextArticle(category.items, article)'
+        },
+        loading: Boolean,
+        offline: Boolean,
+        failure: Boolean,
+        categoryName: {
+          type: Boolean,
+          computed: '_return(_routeData.category)',
+          notify: true
+        },
+        articleId: {
+          type: Boolean,
+          computed: '_return(_routeData.id)',
+          notify: true
+        },
+        _routeData: Object
+      }}
+
+      static get observers() { return [
+        '_loadArticle(article.html)',
+        '_articleChanged(article)'
+      ]}
+
+      connectedCallback() {
+        super.connectedCallback();
+        this._currentArticleCover = this.$.cover0;
+        this._previousArticleCover = this.$.cover1;
+        this._nextArticleCover = this.$.cover2;
+        this._currentArticleCover.article = this.article;
+        Polymer.RenderStatus.afterNextRender(this, this._installListeners);
+      }
+
+      _installListeners() {
+        this._desktopMediaQuery = window.matchMedia('(min-width: 768px)');
+        this.addEventListener('touchstart', this._touchstart.bind(this));
+        this.addEventListener('touchmove', this._touchmove.bind(this));
+        this.addEventListener('touchend', this._touchend.bind(this));
+      }
+
+      _touchstart(event) {
+        if (this._isDesktopWidth()) {
+          return;
+        }
+
+        // Save start coordinates
+        if (!this._touchDir) {
+          this._startX = event.changedTouches[0].clientX;
+          this._startY = event.changedTouches[0].clientY;
+        }
+
+        if (this.previousArticle) {
+          this._previousArticleCover.article = this.previousArticle;
+        }
+        if (this.nextArticle) {
+          this._nextArticleCover.article = this.nextArticle;
+        }
+      }
+
+      _touchmove(event) {
+        if (this._isDesktopWidth()) {
+          return;
+        }
+
+        // Is touchmove mostly horizontal or vertical?
+        if (!this._touchDir) {
+          const absX = Math.abs(event.changedTouches[0].clientX - this._startX);
+          const absY = Math.abs(event.changedTouches[0].clientY - this._startY);
+          this._touchDir = absX > absY ? 'x' : 'y';
+        }
+
+        if (this._touchDir === 'x') {
+          // Prevent vertically scrolling when swiping
+          event.preventDefault();
+
+          let dx = Math.round(event.changedTouches[0].clientX - this._startX);
+
+          // Don't translate past the current image if there's no adjacent image in that direction
+          if ((!this.previousArticle && dx > 0) || (!this.nextArticle && dx < 0)) {
+            dx = 0;
+          }
+
+          if (this.previousArticle) {
+            this._translate(this._previousArticleCover, dx - this.offsetWidth, window.pageYOffset);
+          }
+          if (this.nextArticle) {
+            this._translate(this._nextArticleCover, dx + this.offsetWidth, window.pageYOffset);
+          }
+        }
+      }
+
+      _touchend(event) {
+        if (this._isDesktopWidth()) {
+          return;
+        }
+
+        // Don't finish swiping if there are still active touches.
+        if (event.touches.length) {
+          return;
+        }
+
+        if (this._touchDir === 'x') {
+          let dx = Math.round(event.changedTouches[0].clientX - this._startX);
+
+          // Don't translate past the current image if there's no adjacent image in that direction
+          if ((!this.previousArticle && dx > 0) || (!this.nextArticle && dx < 0)) {
+            dx = 0;
+          }
+
+          if (dx > 0) {
+            if (dx > 100) {
+              this._translate(this._previousArticleCover, 0, window.pageYOffset, true /* transition */);
+              window.setTimeout(() => {
+                this.set('_routeData.id', this.previousArticle.id);
+                Polymer.AppLayout.scroll({ top: 0 });
+                this._previousArticleCover = this._swapCurrentArticleCovers(this._previousArticleCover);
+                this._resetElementStyles(this._nextArticleCover);
+              }, 200);
+            } else {
+              this._translate(this._previousArticleCover, -this.offsetWidth, window.pageYOffset, true /* transition */);
+              window.setTimeout(() => {
+                this._resetElementStyles(this._previousArticleCover);
+                this._resetElementStyles(this._nextArticleCover);
+              }, 200);
+            }
+          } else if (dx < 0) {
+            if (dx < -100) {
+              this._translate(this._nextArticleCover, 0, window.pageYOffset, true /* transition */);
+              window.setTimeout(() => {
+                this.set('_routeData.id', this.nextArticle.id);
+                Polymer.AppLayout.scroll({ top: 0 });
+                this._nextArticleCover = this._swapCurrentArticleCovers(this._nextArticleCover);
+                this._resetElementStyles(this._previousArticleCover);
+              }, 200);
+            } else {
+              this._translate(this._nextArticleCover, this.offsetWidth, window.pageYOffset, true /* transition */);
+              window.setTimeout(() => {
+                this._resetElementStyles(this._previousArticleCover);
+                this._resetElementStyles(this._nextArticleCover);
+              }, 200);
+            }
+          }
+        }
+
+        // Reset touch direction
+        this._touchDir = null;
+      }
+
+      _translate(elem, x, y, transition) {
+        elem.style.display = 'block';
+        elem.style.transition = transition ? 'transform 0.2s' : '';
+        elem.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)';
+      }
+
+      _resetElementStyles(elem) {
+        elem.style.display = '';
+        elem.style.transition = '';
+        elem.style.transform = '';
+      }
+
+      _swapCurrentArticleCovers(newCover) {
+        const oldCover = this._currentArticleCover;
+        oldCover.classList.remove('fade-in');
+        oldCover.classList.add('preview-cover');
+
+        this._resetElementStyles(newCover);
+        newCover.classList.remove('preview-cover');
+        this._currentArticleCover = newCover;
+        newCover.parentElement.insertBefore(newCover, oldCover);
+
+        return oldCover;
+      }
+
+      _isDesktopWidth() {
+        return this._desktopMediaQuery.matches;
+      }
+
+      _loadArticle(html) {
+        if (this._currentArticleCover) {
+          this._currentArticleCover.classList.add('fade-in');
+        }
+        this.$.content.innerHTML = html;
+      }
+
+      _articleChanged(article) {
+        if (this._currentArticleCover) {
+          this._currentArticleCover.article = article;
+        }
+      }
+
+      _tryReconnect() {
+        this.dispatchEvent(new CustomEvent('refresh-data', {bubbles: true, composed: true}));
+      }
+
+      _slice(list, begin, end) {
+        if (list) {
+          return list.slice(begin, end);
+        }
+      }
+
+      _return(value) {
+        return value;
+      }
+
+      _computePreviousArticle(categoryItems, article) {
+        if (categoryItems) {
+          const i = categoryItems.indexOf(article);
+          return i > 0 ? categoryItems[i-1] : null;
+        }
+      }
+
+      _computeNextArticle(categoryItems, article) {
+        if (categoryItems) {
+          const i = categoryItems.indexOf(article);
+          return (i > -1 && i < categoryItems.length-1) ? categoryItems[i+1] : null;
+        }
+      }
+
+    }
+
+    customElements.define(OneOutArticle.is, OneOutArticle);
+
+  </script>
+
+</dom-module>

@@ -1,0 +1,27 @@
+//encapsulation: ViewEncapsulation.Emulated
+//import { ViewEncapsulation } from '@angular/core';
+
+
+
+
+  
+mat-tab-group.mat-primary .mat-ink-bar, .mat-tab-nav-bar.mat-primary .mat-ink-bar {
+  background-color: #ff1744;
+  height: 4px;
+}
+
+.mat-tab-group {
+  background-color: black;
+}
+
+
+.mat-tab-label-content {
+  color: white;
+  font-weight: 300;
+  font-size: 3vh;
+  font-feature-settings: "smcp", "zero";
+}
+
+.mat-tab-labels {
+  display: flow-root !important;
+}

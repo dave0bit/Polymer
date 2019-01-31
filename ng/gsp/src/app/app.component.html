@@ -1,0 +1,18 @@
+
+<div style="text-align:center">
+  <div class="logo-toolbar">
+    <a href="/">_</a>
+  </div>
+  
+  <nav mat-tab-nav-bar>
+    <a mat-tab-link *ngFor="let link of links"
+      (click)="activeLink = link"
+      [routerLink]="link.link"
+      [active]="activeLink == link">
+      {{link.label}}
+    </a>
+  </nav>
+
+  <router-outlet></router-outlet>
+
+</div>

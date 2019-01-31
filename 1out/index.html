@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <base href="/">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+  <title>1Out</title>
+
+  <link rel="shortcut icon" sizes="32x32" href="images/oneout-icon-32.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@oneout">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="1Out">
+  <meta name="theme-color" content="#000">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/roboto-mono.css" type="text/css" />
+  
+  <style>
+
+    body {
+      background-color: white;
+      margin: 0;
+      color: #383838;
+      font-family: 'Roboto Mono';
+      min-height: 100vh;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+
+    oneout-app[unresolved] {
+      display: block;
+      height: 45px;
+      padding-top: 40px;
+      padding-left: 10px;
+      font-size: 39px;
+      font-weight: 600;
+      letter-spacing: 10px;
+      text-align: center;
+    }
+
+    /* mobile */
+    @media (max-width: 767px) {
+      body {
+        /*background-image: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.25) 15%, rgba(0,0,0,0.25) 30%, rgba(0,0,0,0.7) 48%, rgba(0,0,0,1) 60%);*/
+        background-repeat: no-repeat;
+        background-size: 100% 100vh;
+      }
+
+      body.fixed-viewport-height {
+        background-size: 100% 600px;
+      }
+
+      oneout-app[unresolved] {
+        height: 22px;
+        padding-top: 21px;
+        font-size: 20px;
+        color: #FFF; /* --app-cover-text-color */
+      }
+    }
+
+  </style>
+
+</head>
+<body>
+
+  <oneout-app unresolved app-title="1Out">1Out</oneout-app>
+  <script src="bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+  <link rel="import" href="src/oneout-app.html">
+
+</body>
+</html>
+

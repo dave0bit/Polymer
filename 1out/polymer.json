@@ -1,0 +1,27 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/oneout-app.html",
+  "fragments": [
+    "src/oneout-list.html",
+    "src/oneout-article.html",
+    "src/oneout-path-warning.html",
+    "src/lazy-resources.html"
+  ],
+  "sources": [
+    "src/**/*",
+    "images/**/*",
+    "css/**/*"
+  ],
+  "extraDependencies": [
+    "manifest.json",
+    "bower_components/webcomponentsjs/*"
+  ],
+  "lint": {
+    "rules": ["polymer-2-hybrid"]
+  },
+  "builds": [
+    {
+      "preset": "es5-bundled"
+    }
+  ]
+}

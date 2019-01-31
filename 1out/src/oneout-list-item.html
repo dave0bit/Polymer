@@ -1,0 +1,46 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<link rel="import" href="oneout-img.html">
+<link rel="import" href="oneout-styles.html">
+<link rel="import" href="oneout-styles.m.html">
+
+<dom-module id="oneout-list-item">
+
+  <template>
+    <style is="custom-style" include="list-item-css"></style>
+    <style is="custom-style" include="list-item-css.m"></style>
+
+    <a href$="[[item.href]]">
+      <oneout-img src="[[item.imageUrl]]" alt="[[item.headline]]"></oneout-img>
+      <div class="headline">
+        <div class="category" hidden$="[[!item.category]]">[[item.category]]</div>
+        <h2>[[item.headline]]</h2>
+        <div class="details"></div>
+      </div>
+    </a>
+  </template>
+
+  <script>
+
+    class OneOutListItem extends Polymer.Element {
+
+      static get is() { return 'oneout-list-item'; }
+
+      static get properties() {
+        return {
+
+          item: {
+            type: Object
+          }
+
+        }
+      }
+
+    }
+
+    customElements.define(OneOutListItem.is, OneOutListItem);
+
+  </script>
+
+</dom-module>

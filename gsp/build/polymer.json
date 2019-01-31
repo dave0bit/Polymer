@@ -1,0 +1,53 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src\\gsp-app.html",
+  "fragments": [
+    "src/gsp-list.html",
+    "src/gsp-article.html",
+    "src/gsp-path-warning.html",
+    "src/lazy-resources.html"
+  ],
+  "sources": [
+    "src/**/*",
+    "css/**/*",
+    "bower.json",
+    "index.html",
+    "src/gsp-app.html",
+    "src/gsp-list.html",
+    "src/gsp-article.html",
+    "src/gsp-path-warning.html",
+    "src/lazy-resources.html"
+  ],
+  "extraDependencies": [
+    "bower_components/webcomponentsjs/*.js",
+    "favicon.ico",
+    "manifest.json",
+    "bower_components/webcomponentsjs/*"
+  ],
+  "builds": [
+    {
+      "name": "es5-bundled",
+      "js": {
+        "minify": true,
+        "compile": "es5",
+        "transformModulesToAmd": true
+      },
+      "css": {
+        "minify": true
+      },
+      "html": {
+        "minify": true
+      },
+      "bundle": true,
+      "addServiceWorker": true,
+      "addPushManifest": false,
+      "preset": "es5-bundled"
+    }
+  ],
+  "lint": {
+    "rules": [
+      "polymer-2-hybrid"
+    ]
+  },
+  "moduleResolution": "node"
+}

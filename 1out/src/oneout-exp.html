@@ -1,0 +1,120 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+
+<link rel="import" href="oneout-icons.html">
+<link rel="import" href="oneout-styles.html">
+
+<dom-module id="oneout-exp">
+  <template>
+      <style>
+
+          :host{
+            color:var(--oneout-secondary-color);
+			    }
+
+          iron-collapse {
+            font-weight: 200;
+          }
+    
+          paper-button:hover {
+            --paper-button-flat-keyboard-focus: {
+              cursor: pointer;
+            }
+          }
+
+          paper-button {
+            --paper-button: { 
+              margin: 0;
+              padding: 0;
+              border-radius: 0;
+              text-transform: none;
+              min-width: none;
+            }
+          }
+
+          iron-collapse {
+            padding: 8px;
+            background-color: var(--oneout-background-color);
+            color: var(--oneout-black-color);
+            --iron-collapse-transition-duration : 400ms;
+          }
+
+      </style>
+    
+      <paper-button id="trigger" 
+        toggles 
+        on-tap="_toggle" 
+        aria-expanded$="[[opened]]" 
+        aria-controls="collapse">[[title]]
+        <iron-icon icon="[[_ModeIcon]]"></iron-icon>
+      </paper-button>
+
+      <iron-collapse id="collapse" 
+        opened$="[[opened]]" 
+        horizontal$="[[horizontal]]" 
+        no-animation$="[[noAnimation]]" 
+        tabindex="0">
+        <slot></slot>
+      </iron-collapse>
+
+  </template>
+
+  <script>
+    
+    class OneOutExp extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'oneout-exp'; }
+
+      static get properties() {
+
+        return {
+          title: {type: String},
+          horizontal: {type: Boolean},
+          opened: {type: Boolean, reflectToAttribute: true},
+          noAnimation: {type: Boolean},
+          done: {
+            type: String,
+            reflectToAttribute: true
+          },
+          _ModeIcon:{
+						type: String,
+						value:"expand-more"
+          },
+          _ModeIsDone:{
+						type: Boolean,
+						value:false
+					},
+          doIcon:{
+						type:String,
+						value: "expand-more"
+					},
+					doneIcon:{
+						type:String,
+						value:"expand-less"
+					}
+        }
+      }
+
+      _toggle() {
+        this.$.collapse.toggle();
+        
+        this._ModeIsDone=!this._ModeIsDone;
+
+        if(this._ModeIsDone) {
+					this._ModeIcon=this.doneIcon;
+        } 
+        else
+        {
+					this._ModeIcon=this.doIcon;
+				};
+			}
+
+      connectedCallback() {
+				super.connectedCallback();
+			}
+    }  
+    customElements.define(OneOutExp.is, OneOutExp);
+  </script>
+
+</dom-module>

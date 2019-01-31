@@ -1,0 +1,28 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/gsp-app.html",
+  "fragments": [
+    "src/gsp-list.html",
+    "src/gsp-article.html",
+    "src/gsp-path-warning.html",
+    "src/lazy-resources.html"
+  ],
+  "sources": [
+    "src/**/*",
+    "css/**/*",
+    "bower.json"
+  ],
+  "extraDependencies": [
+    "favicon.ico",
+    "manifest.json",
+    "bower_components/webcomponentsjs/*"
+  ],
+  "lint": {
+    "rules": ["polymer-2-hybrid"]
+  },
+  "builds": [
+    {
+      "preset": "es5-bundled"
+    }
+  ]
+}

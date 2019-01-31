@@ -1,0 +1,230 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<dom-module id="gsp-data">
+
+  <script>
+
+    (function () {
+
+      var categoryList = [
+        {
+          name: "servizi",
+          title: "Servizi",
+          metadesc: "Ci occupiamo di archiviazione fisica, digitalizzazione, conservazione in Database del dato, dal 2001 presso gli Istituti di Pena.",
+          metaname: "Gspgroup - Gestione documentale, rigenerazione e noleggio di stampanti per un modello di business innovativo e attento al sociale.",
+          metakey: "digitalizzazione documentale, gestione documentale, Gsp, normalizzazione docuemnti, indicizzazione, scansione documenti, stampanti noleggio, dematerializzazioen cartacea, stampanti rigenerate, data entry manuale, fatturazione elettronica, archiviazione fisica docuemnti, archiviazione sostitutiva",
+          image: "data/images/digitalizzazione.png"
+        },
+        {
+          name: "chisiamo",
+          title: "Chi siamo",
+          metadesc: "Nati nel 2001, ci avvaliamo di personale svantaggiato. Grazie alla legge Smuraglia, promuoviamo l'inserimento lavorativo dei detenuti ed offriamo servizi di qualità a costi più competitivi nel nord Italia. ",
+          metaname: "Entrare negli Istituti di pena, e portare la Digital Transfromation sui banchi di lavoro. L'obiettivo che perseguiamo dal 2001",
+          metakey: "responsabilità sociale, legge smuraglia, lavoro con i detenuti, reinserimento lavorativo detenuti",
+          image: "data/images/mission_vision.png"
+        },
+        {
+          name: "contatti",
+          title: "Contatti",
+          metadesc: "Contattaci per info e preventivi o per saperne di più sul nostro Modello di Business basato sulla responsabilità sociale. ",
+          metaname: "Ogni archivio digitalizzato è un'occasione di reinserimento delle nostre risorse e di riqualifica della nostra società, scopri come contribuire.",
+          metakey: "digitalizzazione documentale, gestione documentale, Gsp, normalizzazione docuemnti, indicizzazione, scansione docuemnti, database remoto, dematerializzazioen cartacea",
+          image: "data/images/contatti.png"
+        }
+
+      ];
+
+      var textarea = document.createElement('textarea');
+
+      class GspData extends Polymer.Element {
+
+        static get is() { return 'gsp-data'; }
+
+        static get properties() {
+          return {
+
+            categories: {
+              type: Array,
+              value: categoryList,
+              readOnly: true,
+              notify: true
+            },
+
+            categoryName: String,
+
+            articleId: String,
+
+            offline: Boolean,
+
+            loading: {
+              type: Boolean,
+              readOnly: true,
+              notify: true
+            },
+
+            category: {
+              type: Object,
+              computed: '_computeCategory(categoryName)',
+              notify: true
+            },
+
+            article: {
+              type: Object,
+              computed: '_computeArticle(category.items, articleId)',
+              notify: true
+            },
+
+            failure: {
+              type: Boolean,
+              readOnly: true,
+              notify: true
+            }
+
+          }
+        }
+
+        static get observers() {
+          return [
+            '_fetchCategory(category, offline)',
+            '_fetchArticle(article, offline)'
+          ]
+        }
+
+        _computeArticle(categoryItems, articleId) {
+          if (!categoryItems || !articleId) {
+            return null;
+          }
+          for (let i = 0; i < categoryItems.length; ++i) {
+            let article = categoryItems[i];
+            if (article.id === articleId) {
+              return article;
+            }
+          }
+          return null;
+        }
+
+        _fetchArticle(article, offline) {
+          if ((offline && article && article.html) || !article || this.loading) {
+            this._setFailure(false);
+            return;
+          }
+          this._fetch('data/articles/' + article.id + '.html',
+            (response) => { this.set('article.html', this._formatHTML(response)); },
+            1 /* attempts */, true /* isRaw */);
+        }
+
+        _computeCategory(categoryName) {
+          for (let i = 0, c; c = this.categories[i]; ++i) {
+            if (c.name === categoryName) {
+              return c;
+            }
+          }
+          return null;
+        }
+
+        _fetchCategory(category, offline, attempts) {
+          if ((offline && category && category.items) || !category || this.loading) {
+            this._setFailure(false);
+            return;
+          }
+          this._fetch('data/' + category.name + '.json',
+            (response) => { this.set('category.items', this._parseCategoryItems(response)); },
+            attempts || 1 /* attempts */);
+        }
+
+        _parseCategoryItems(response) {
+          let items = [];
+
+          for (let i = 0, item; item = response[i]; ++i) {
+            items.push({
+              headline: this._unescapeText(item.title),
+              href: this._getItemHref(item),
+              id: item.id,
+              imageUrl: this._getItemImage(item),
+              placeholder: item.placeholder,
+              category: item.category,
+              summary: this._trimRight(item.summary, 512),
+              keyword: item.keyword,
+              background: item.background,
+              metadesc: item.metadesc,
+              metaname: item.metaname,
+              metakey: item.metakey
+            });
+          }
+
+          return items;
+        }
+
+        _unescapeText(text) {
+          textarea.innerHTML = text;
+          return textarea.textContent;
+        }
+
+        _getItemHref(item) {
+          return item.id ? '/article/' + this.categoryName + '/' + encodeURIComponent(item.id) : null;
+        }
+
+        _getItemImage(item) {
+          return item.imgSrc ? 'data/' + item.imgSrc : '';
+        }
+
+        _trimRight(text, maxLength) {
+          let breakIdx = text.indexOf(' ', maxLength);
+          return breakIdx === -1 ? text : text.substr(0, breakIdx) + '...';
+        }
+
+        _formatHTML(html) {
+          let template = document.createElement('template');
+          template.innerHTML = html;
+
+          let images = template.content.querySelectorAll('img');
+          for (let i = 0; i < images.length; ++i) {
+            let img = images[i];
+            img.removeAttribute('width');
+            img.removeAttribute('height');
+          }
+
+          return template.content.querySelector('.content').innerHTML;
+        }
+
+        _fetch(url, callback, attempts, isRaw) {
+          let xhr = new XMLHttpRequest();
+          xhr.addEventListener('load', (e) => {
+            this._setLoading(false);
+            if (isRaw) {
+              callback(e.target.responseText);
+            } else {
+              callback(JSON.parse(e.target.responseText));
+            }
+          });
+          xhr.addEventListener('error', (e) => {
+            if (attempts > 1) {
+              this._fetchDebouncer = Polymer.Debouncer.debounce(this._fetchDebouncer,
+                Polymer.Async.timeOut.after(200), this._fetch.bind(this, url, callback, attempts - 1));
+            } else {
+              this._setLoading(false);
+              this._setFailure(true);
+            }
+          });
+
+          this._setLoading(true);
+          this._setFailure(false);
+          xhr.open('GET', url);
+          xhr.send();
+        }
+
+        refresh() {
+          if (this.categoryName) {
+            this._fetchCategory(this.category, this.offline, 3);
+          }
+        }
+
+      }
+
+      customElements.define(GspData.is, GspData);
+
+    })();
+
+  </script>
+
+</dom-module>

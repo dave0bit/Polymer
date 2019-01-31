@@ -1,0 +1,534 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-styles/classes/typography.html">
+<link rel="import" href="../bower_components/paper-styles/classes/shadow.html">
+
+<custom-style>
+
+  <!-- APP -->
+  <dom-module id="app-css.m">
+    <template>
+      <style>
+        /* mobile */
+        @media (max-width: 767px) {
+
+          footer .footer-legal {
+            flex-direction: column;
+          }
+
+        }
+      </style>
+    </template>
+  </dom-module>
+
+  <dom-module id="header-css.m">
+    <template>
+      <style>
+        /* mobile */
+        @media (max-width: 767px) {
+          header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            color: var(--app-cover-text-color);
+          }
+
+          .logo-toolbar {
+            top: 0px;
+            background-image: url('/images/logomff.png');
+            background-size: 72px;
+            background-color: transparent;
+            background-repeat: no-repeat;
+            background-position: center center;
+          }
+
+          header .logo {
+            margin-right: 40px;
+          }
+
+          :host([page=article]) header .logo {
+            visibility: hidden;
+          }
+
+          :host([page=list]) header .logo {
+            visibility: hidden;
+          }
+
+          .sticky-nav .logo,
+          :host([page=article]) .sticky-nav,
+          :host([page=list]) .sticky-nav .article-headline {
+            display: none;
+          }
+
+          :host([page=article]) .sticky-nav-center {
+            width: calc(100% - 120px);
+          }
+
+          :host([page=list]) .sticky-nav-center {
+            width: calc(100% - 80px);
+          }
+        }
+
+        /* desktop small */
+        @media (min-width: 768px) {
+
+          .mobile-toggle-drawer-btn {
+            display: none;
+          }
+
+          .sticky-nav-toolbar {
+            height: auto;
+          }
+
+          .sticky-nav-center {
+            top: 0px;
+            background-image: url('/images/logomff.png');
+            background-size: 72px;
+            background-repeat: no-repeat;
+            background-position: center center;
+            -webkit-transform-origin: center top !important;
+            transform-origin: center top !important;
+          }
+
+          .sticky-nav {
+            height: auto;
+          }
+
+          :host([page=article]) .sticky-nav .sticky-nav-center {
+            margin-left: 40px;
+          }
+
+          .sticky-nav .logo a {
+            color: inherit;
+          }
+
+          .sticky-nav .logo {
+            font-size: 42px;
+            padding-top: 16px;
+            visibility: hidden
+          }
+
+          .sticky-nav .article-headline {
+            display: none;
+          }
+
+          .sticky-nav-center {
+            flex: 1;
+          }
+
+          .sticky-nav-menu {
+            @apply --layout-vertical;
+            @apply --layout-center;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--app-nav-background-color);
+            transition: transform 0.2s ease-in-out;
+            will-change: transform;
+            z-index: -1;
+            padding-top: 20px;
+            padding-bottom: 40px;
+          }
+
+          .grid-container {
+            -moz-column-count: 4;
+            -moz-column-gap: 82px;
+            column-count: 4;
+            column-gap: 82px;
+          }
+
+          .sticky-nav[threshold-triggered] .sticky-nav-menu[shown] {
+            transform: translate3d(0, 100%, 0);
+          }
+
+          .logo-toolbar {
+            margin-left: 0;
+            margin-top: 20px;
+          }
+        }
+      </style>
+    </template>
+  </dom-module>
+
+  <dom-module id="img-css.m">
+    <template>
+      <style>
+        /* mobile */
+        @media (max-width: 767px) {
+          img {
+            @apply --layout-fit;
+            margin: 0 auto;
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+            transition: opacity 0.1s;
+            opacity: 0;
+          }
+        }
+      </style>
+    </template>
+  </dom-module>
+
+
+  <!-- ARTICLE -->
+  <dom-module id="article-cover-css.m">
+    <template>
+      <style>
+        /* mobile */
+        @media (max-width: 767px) {
+
+          :host {
+            --backgroundColor: #000;
+            background: var(--backgroundColor);
+          }
+
+          .cover-text {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+            color: var(--app-cover-text-color);
+            padding: 0 24px;
+            z-index: 1;
+          }
+
+          :host-context(.fixed-viewport-height) .cover-text {
+            height: var(--viewport-height);
+          }
+
+          .cover-text .category {
+            border: var(--app-transparent-border-style);
+            width: fit-content;
+            margin-bottom: 6vh;
+          }
+
+          .cover-img-container {
+            position: absolute;
+            top: 0;
+          }
+
+          .cover-img-container > oneout-img {
+            min-height: 75vh;
+          }
+
+          .cover-img-container .scrim {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: var(--backgroundGradient);
+          }
+
+          .category {
+            visibility: visible;
+          }
+
+          h1 {
+            margin-top: 0;
+            margin-bottom: 5vh
+          }
+
+          .chevron {
+            visibility: visible;
+            flex: 1;
+          }
+          
+          .chevron .left {
+            max-height: 40px;
+            float: left;
+          }
+
+          .chevron .right {
+            max-height: 40px;
+            float: right;
+          }
+        }
+
+        /* mobile and desktop small */
+        @media (max-width: 1309px) {
+          h1 {
+            font-size: 4vh;
+            line-height: 7vh;
+            max-height: calc(7vh * 7);
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 7;
+            -webkit-box-orient: vertical;
+          }
+
+
+          :host-context(.fixed-viewport-height) h1 {
+            font-size: calc(var(--viewport-height) * 0.06);
+            line-height: calc(var(--viewport-height) * 0.07);
+            max-height: calc(var(--viewport-height) * 0.49);
+          }
+
+
+        }
+      </style>
+    </template>
+  </dom-module>
+
+  <dom-module id="article-css.m">
+    <template>
+      <style>
+        /* mobile */
+        @media (max-width: 767px) {
+          :host {
+            display: block;
+            margin-top: 0;
+          }
+          .container {
+            display: block;
+          }
+
+          .preview-cover {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1;
+          }
+
+          #content {
+            padding: 24px;
+            width: auto;
+            text-align: left;
+          }
+
+        }
+
+        /* mobile and desktop small */
+        @media (max-width: 1309px) {
+          h1 {
+            font-size: 6vh;
+            line-height: 7vh;
+            max-height: calc(7vh * 7);
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 7;
+            -webkit-box-orient: vertical;
+          }
+
+          :host-context(.fixed-viewport-height) h1 {
+            font-size: calc(var(--viewport-height) * 0.06);
+            line-height: calc(var(--viewport-height) * 0.07);
+            max-height: calc(var(--viewport-height) * 0.49);
+          }
+        }
+      </style>
+    </template>
+  </dom-module>
+
+
+  <!-- LIST -->
+  <dom-module id="list-featured-item-css.m">
+    <template>
+      <style>
+        /* mobile and desktop small */
+        @media (max-width: 1309px) {
+          a {
+            height: 100vh;
+            background: #000;
+            color: var(--app-cover-text-color);
+          }
+
+          :host-context(.fixed-viewport-height) a {
+            height: var(--viewport-height);
+          }
+
+          oneout-img {
+            min-height: 100vh;
+          }
+
+          :host-context(.fixed-viewport-height) oneout-img {
+            min-height: calc(var(--viewport-height) * 0.6);
+          }
+
+          .scrim {
+            @apply --layout-fit;
+          }
+
+          .headline {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: unset;
+            padding-left: 20px;
+            padding-right: 20px;
+            background: var(--oneout-black-color)
+          }
+
+          h2 {
+            font-size: 4vh;
+            font-weight: 500;
+            line-height: 5vh;
+            max-height: calc(4vh * 7);
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+          }
+
+          :host-context(.fixed-viewport-height) h2 {
+            font-size: calc(var(--viewport-height) * 0.06);
+            line-height: calc(var(--viewport-height) * 0.07);
+            max-height: calc(var(--viewport-height) * 0.49);
+          }
+
+          .category {
+            border: var(--app-transparent-border-style);
+            display: none;
+          }
+
+          .details {
+            height: 19px;
+            border-top: var(--app-transparent-border-style);
+            padding-top: 29px;
+          }
+
+          p {
+            display: none;
+          }
+        }
+
+        /* desktop small */
+        @media (min-width: 768px) and (max-width: 1309px) {
+          a {
+            height: 50vmax;
+          }
+          oneout-img {
+            min-height: 70vh;
+          }
+        }
+
+        /* desktop large */
+        @media (min-width: 1310px) {
+          a {
+            @apply --layout-horizontal;
+          }
+
+          h2 {
+            margin-top: -10px;
+            font-size: 38px;
+            line-height: 48px;
+          }
+
+          oneout-img {
+            @apply --layout-fit;
+          }
+
+          .img-container {
+            width: 768px;
+            min-width: 768px;
+            min-height: 553px;
+            margin-right: 24px;
+            margin-left: 32px;
+          }
+
+          .details {
+            padding: 24px 0;
+            border-top: var(--app-border-style);
+          }
+        }
+      </style>
+    </template>
+  </dom-module>
+
+  <dom-module id="list-item-css.m">
+    <template>
+      <style>
+        /* mobile */
+        @media (max-width: 767px) {
+          oneout-img {
+            display: none;
+          }
+        }
+
+        /* desktop small */
+        @media (min-width: 768px) {
+          :host([horizontal]) {
+            margin-bottom: 24px;
+          }
+
+          .category {
+            margin-top: 15px;
+          }
+        }
+
+        /* desktop large */
+        @media (min-width: 1310px) {
+          :host([horizontal]) a {
+            @apply --layout-horizontal;
+          }
+
+          :host([horizontal]) oneout-img {
+            min-width: 150px;
+            margin-right: 24px;
+          }
+
+          :host([horizontal]) .category {
+            display: none;
+          }
+        }
+      </style>
+    </template>
+  </dom-module>
+
+  <dom-module id="list-css.m">
+    <template>
+      <style include="app-grid-style">
+        /* mobile */
+        @media (max-width: 767px) {
+          aside {
+            display: none;
+          }
+
+          .article-grid li {
+            border-bottom: var(--app-border-style);
+            margin: 0px 24px 24px 24px;
+            padding-bottom: 24px;
+          }
+
+          .article-grid li:last-of-type {
+            border-bottom: none;
+          }
+        }
+
+        /* desktop */
+        @media (min-width: 768px) {
+          :host {
+            --app-grid-columns: 3;
+            --app-grid-gutter: 32px;
+          }
+
+
+          .article-grid {
+            margin-right: -32px;
+          }
+        }
+
+        /* desktop large */
+        @media (min-width: 1310px) {
+          .container {
+            @apply --layout-horizontal;
+
+          }
+
+          .content {
+            margin-right: 24px;
+          }
+
+          aside {
+            width: 300px;
+            min-width: 300px;
+          }
+        }
+      </style>
+    </template>
+  </dom-module>
+
+</custom-style>

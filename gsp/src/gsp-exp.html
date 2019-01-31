@@ -1,0 +1,104 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/paper-styles/shadow.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+
+<link rel="import" href="gsp-icons.html">
+
+<dom-module id="gsp-exp">
+  <template>
+      <style>
+
+          paper-button:hover {
+            --paper-button-flat-keyboard-focus: {
+              cursor: pointer;
+            }
+          }
+
+          paper-button {
+            --paper-button: { 
+              margin: 0;
+              padding: 0;
+              border-radius: 0;
+              text-transform: none;
+              min-width: none;
+            }
+          }
+
+          iron-collapse {
+            padding: 8px;
+            background-color: var(--google-grey-100);
+            color: black;
+            --iron-collapse-transition-duration : 400ms;
+          }
+
+      </style>
+    
+      <paper-button toggles id="trigger" on-tap="_toggle" aria-expanded$="[[opened]]" aria-controls="collapse">[[title]]
+        <iron-icon icon="[[_ModeIcon]]"></iron-icon>
+      </paper-button>
+
+      <iron-collapse id="collapse" opened$="[[opened]]" horizontal$="[[horizontal]]" no-animation$="[[noAnimation]]" tabindex="0">
+        <slot></slot>
+      </iron-collapse>
+
+  </template>
+
+  <script>
+    
+    class  GspExp extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'gsp-exp'; }
+
+      static get properties() {
+
+        return {
+          title: {type: String},
+          horizontal: {type: Boolean},
+          opened: {type: Boolean, reflectToAttribute: true},
+          noAnimation: {type: Boolean},
+          done: {
+            type: String,
+            reflectToAttribute: true
+          },
+          _ModeIcon:{
+						type: String,
+						value:"gsp:expand-more"
+          },
+          _ModeIsDone:{
+						type: Boolean,
+						value:false
+					},
+          doIcon:{
+						type:String,
+						value: "gsp:expand-more"
+					},
+					doneIcon:{
+						type:String,
+						value:"gsp:expand-less"
+					}
+        }
+      }
+
+      _toggle() {
+        this.$.collapse.toggle();
+        
+        this._ModeIsDone=!this._ModeIsDone;
+
+        if(this._ModeIsDone) {
+          this._ModeIcon=this.doneIcon;
+        } 
+        else
+        {
+          this._ModeIcon=this.doIcon;
+        };
+      }
+
+      connectedCallback() {
+				super.connectedCallback();
+			}
+    }  
+    customElements.define(GspExp.is, GspExp);
+  </script>
+
+</dom-module>

@@ -1,0 +1,94 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+
+<link rel="import" href="oneout-img.html">
+<link rel="import" href="oneout-icons.html">
+<link rel="import" href="oneout-styles.html">
+<link rel="import" href="oneout-styles.m.html">
+
+<dom-module id="oneout-article-cover">
+
+  <template>
+    <style is="custom-style" include="article-cover-css"></style>
+    <style is="custom-style" include="article-cover-css.m"></style>
+
+    <div class="cover-text">
+
+      <div class="chevron"></div> 
+
+      <div class="chevron">
+        <img src= "/images/chevronl.png" class="left"  />
+        <img src= "/images/chevronr.png" class="right" />
+      </div>
+
+      <div class="category">[[article.category]]</div>
+      
+      <h1>[[article.headline]]</h1>
+
+    </div>
+
+    <div class="cover-img-container">
+      <oneout-img src="[[article.imageUrl]]" hidden$="[[!article.imageUrl]]"></oneout-img>
+      <div class="scrim"></div>
+    </div>
+
+  </template>
+
+  <script>
+
+    class OneOutArticleCover extends Polymer.Element {
+      static get is() { return 'oneout-article-cover'; }
+
+      static get properties() {
+        return {
+          article: {
+            type: Object
+          },
+          background: {
+            type: Object,
+            computed: '_computeBackground(article)',
+            notify: true
+          }
+        }
+      }
+
+      _computeBackground(article) {
+
+        if (article != null) {
+          var c = this._hexToRgbA(article.background);
+          this.updateStyles(
+            {
+              '--backgroundColor': article.background,
+              /*'--backgroundGradient': 'linear-gradient(to bottom, rgba(' + c + ',0.6) 0%, rgba(' + c + ',0.25) 25%, rgba(' + c + ',0.25) 50%, rgba(' + c + ',0.7) 80%, rgba(' + c +',1) 100%)'*/
+            }
+          );
+        }
+        else {
+          this.updateStyles(
+            {
+              '--backgroundColor': '#f00',
+              /*'--backgroundGradient': 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.25) 25%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.7) 80%, rgba(0,0,0,1) 100%)'*/
+            });
+        }
+      }
+
+      _hexToRgbA(hex) {
+        var c;
+        if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+          c = hex.substring(1).split('');
+          if (c.length == 3) {
+            c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+          }
+          c = '0x' + c.join('');
+          //return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',1)';
+          return [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',');
+        }
+        throw new Error('Bad Hex');
+      }
+    }
+
+    customElements.define(OneOutArticleCover.is, OneOutArticleCover);
+
+  </script>
+
+</dom-module>

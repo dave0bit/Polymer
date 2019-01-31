@@ -1,0 +1,75 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
+
+<link rel="import" href="oneout-header.html">
+
+<dom-module id="oneout-nav">
+
+  <template>
+
+    <iron-media-query 
+      query="max-width: 767px" 
+      query-matches="{{_smallScreen}}">
+    </iron-media-query>
+
+    <oneout-header
+      menu="{{menu}}"  
+      app-title="[[appTitle]]"
+      page="[[page]]"
+      categories="[[categories]]"
+      category="[[category]]"
+      small-screen="[[_smallScreen]]"
+      drawer-opened="{{_drawerOpened}}">
+      <slot></slot>
+    </oneout-header>
+
+    <dom-if if="[[_shouldRenderDrawer(_smallScreen, loadComplete)]]">
+      <template>
+        <oneout-drawer
+          categories="[[categories]]"
+          category="[[category]]"
+          drawer-opened="{{_drawerOpened}}">
+        </oneout-drawer>
+      </template>
+    </dom-if>
+
+
+  </template>
+
+  <script>
+
+    class OneOutNav extends Polymer.Element {
+
+      static get is() { return 'oneout-nav'; }
+
+      static get properties() { 
+        return {
+          menu: {
+            type: String,
+            notify: true,
+            readonly: true
+          },
+          appTitle: String,
+          page: String,
+          categories: Array,
+          category: Object,
+          loadComplete: Boolean,
+          _smallScreen: Boolean,
+          _drawerOpened: Boolean
+        }
+      }
+
+      closeDrawer() {
+        this._drawerOpened = false;
+      }
+
+      _shouldRenderDrawer(smallScreen, loadComplete) {
+        return smallScreen && loadComplete;
+      }
+    }
+
+    customElements.define(OneOutNav.is, OneOutNav);
+
+  </script>
+
+</dom-module>
